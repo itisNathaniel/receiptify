@@ -2,13 +2,10 @@ package main
 
 import ( 
     "fmt"
-    //"net/mail"
-    "time"
     "github.com/jprobinson/eazye"
     "os"
     "strconv"
     "runtime"
-    //"sync"
 )
 
 var procs = runtime.NumCPU()
@@ -24,12 +21,8 @@ func main() {
     
 	mailbox := eazye.MailboxInfo{mailserver, mailserverssl, emailaddress, password, folder, true}
     
-    t := time.Now()
-    rounded := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+    mail, err := eazye.GetCommand(mailbox, "FROM orders@jdwetherspoon.co.uk", true, false)
 
-    fmt.Println(rounded)
-
-    mail, err := eazye.GetUnread(mailbox, true, false)
     emailCount := len(mail)
 
     // Just double check 
@@ -42,6 +35,7 @@ func main() {
 func parseMessages(mail eazye.Email){
     fmt.Println("Here I am", string(mail.HTML))
 }
+
 
 // Concurrent stuff to return to 
 //
