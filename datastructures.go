@@ -8,6 +8,7 @@ type RecieptDetails struct {
     PayMethod       string
     OrderTotal      string
     VatTotal        string
+    OrderWithVat    int
     Name            string
     Address         string
     Postcode        string

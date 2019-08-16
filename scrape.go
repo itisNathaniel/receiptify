@@ -4,9 +4,10 @@ import (
     "golang.org/x/net/html"
     "strings"
     "unicode"
+    "strconv"
+    "fmt"
 
 )
-
 
 func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
     bodyString := strings.NewReader(stringHTML)
@@ -99,17 +100,18 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
     RecieptDetail.VatTotal = content[endOfItemsIndex + 5]
     RecieptDetail.VatNumber = content[endOfItemsIndex + 9]
 
-// Calculates total spent
-//     cost := strings.ReplaceAll(RecieptDetail.OrderTotal, "£", "")
-//     vat := strings.ReplaceAll(RecieptDetail.VatTotal, "£", "")
-//     totalvat, err := strconv.ParseFloat(vat, 64)
-//     totalcost, err := strconv.ParseFloat(cost, 64)
-//     fmt.Println(err);
-//     totalSpent = totalSpent + totalcost + totalvat
+    cost := strings.ReplaceAll(RecieptDetail.OrderTotal, "£", "")
+    cost = strings.ReplaceAll(cost, ".", "")
+    vat := strings.ReplaceAll(RecieptDetail.VatTotal, "£", "")
+    vat = strings.ReplaceAll(vat, ",", "")
+    totalvat, err := strconv.Atoi(vat)
+    totalcost, err := strconv.Atoi(cost)
+    RecieptDetail.OrderWithVat = totalcost + totalvat
 
+    if(err != nil) {
+        fmt.Println(err)
+    }
 
-    // Print to check the slice's content
-    //fmt.Println(content)
     return recieptItems,RecieptDetail
 }
 
@@ -121,18 +123,3 @@ func isInt(s string) bool {
         }
         return true
     }
-
-// Concurrent stuff to return to 
-//
-//     // concurrency time 
-//     var parsers sync.WaitGroup
-// 	for i := 0; i < emailCount; i++ {
-// 		parsers.Add(1)
-// 		// multi goroutines so we can utilize the CPU while waiting for URLs
-// 		go parseMessages(mail[i])
-//     }
-
-    
-//     fmt.Println("done woo")
-//     //fmt.Println(mail,err)
-// }

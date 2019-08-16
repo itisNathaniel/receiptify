@@ -9,26 +9,27 @@ import (
 
 var procs = runtime.NumCPU()
 
-//var totalSpent float64 = 0;
-
 func main() {
-    //get from env 
 
+    // fetch mail
     mail := getMail()
-    emailCount := len(mail)
 
-    //Just double check 
+    // print to console how many reciepts we've got
+    emailCount := len(mail)
     fmt.Println(emailCount)
 
+    // parse all emails
     mailCount := 0
     for range mail {
         parseMessages(mail[mailCount])
         mailCount++;
     }
 
+    // look up reciepts in Monzo
 }
 
 func parseMessages(mail eazye.Email){
+        // call for HTML parsing
         items, recdet := parseHTML(string(mail.HTML))
         fmt.Println(items, recdet)
 }
