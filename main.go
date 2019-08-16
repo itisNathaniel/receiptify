@@ -14,22 +14,27 @@ type RecieptDetails struct {
     OrderID         string
     OrderDate       string
     OrderTime       string
+    Table           string
+    PayMethod       string
+    OrderTotal      string
+    VatTotal        string
+    Name            string
+    Address         string
+    Postcode        string
+    Phone           string
     VatNumber       string
-    BarName         string
 }
 
 type RecieptItem struct {
     Description     string
     Quantity        string
-    TableNumber     int
-    VatNumber       string
+    Price           string
 }
 
 
 var procs = runtime.NumCPU()
 
 func main() {
-    fmt.Println("hello world")
     // get from env 
     // mailserver := os.Getenv("mailserver");
     // mailserverssl, err := strconv.ParseBool(os.Getenv("mailserverssl"));
@@ -67,20 +72,86 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
     RecieptDetail := RecieptDetails{}
     tokenCount := 0
 
+    // Extract from HTML
     for {
         tt := token.Next()
         t := token.Token()
         td := t.Data
         tokenCount++
         // line 45 is where the reciept content starts
-        if (tt == html.TextToken && tokenCount > 45){
+        if tt == html.ErrorToken {
+                break
+        } else if (tt == html.TextToken && tokenCount > 45){
                 stringContent :=  strings.TrimSpace(td)
                 if(len(stringContent) > 0){
-                        fmt.Println(stringContent)
-                        content = append(content, td)
+                        content = append(content, stringContent)
                 }
         }
+
+
     }
+
+    // Pull what we need from slice
+    fmt.Println(content)
+    fmt.Println("\n\n\n")
+
+    RecieptDetail.Name = content[0]
+    RecieptDetail.Address = content[1] + ", " + content[2]
+    // some have more addresses - postcodes are 6-8 chars + space so need to offset
+    var addressOffset int = 0;
+    if(len(content[3]) < 9){
+        addressOffset = 0;
+    } else {
+        addressOffset = 1;
+    }
+    RecieptDetail.Postcode = content[3 + addressOffset]
+    RecieptDetail.Phone = (content[4 + addressOffset])[11:]
+    RecieptDetail.OrderID = content[6 + addressOffset]
+    RecieptDetail.OrderDate = (content[7 + addressOffset])[12:]
+    RecieptDetail.OrderTime = (content[8 + addressOffset])[12:]
+    RecieptDetail.Table = content[10 + addressOffset]
+
+    var endOfItemsIndex int
+    thisLineIndex := 14 + addressOffset
+
+    for {
+        if(content[thisLineIndex] == "Payment Type"){
+                endOfItemsIndex = thisLineIndex; 
+                break;
+        } else {
+                // additional params
+                Quantity := content[thisLineIndex]
+                Name := content[thisLineIndex + 1]
+                AdditionalInfoOrPrice := content[thisLineIndex + 2]
+                PriceOrNextItem := content[thisLineIndex + 3]
+                
+                var thisItem RecieptItem
+
+                if(strings.Contains(AdditionalInfoOrPrice, "£")) {
+                        thisItem.Quantity = Quantity
+                        thisItem.Description = Name
+                        thisItem.Price = AdditionalInfoOrPrice;
+
+                        thisLineIndex = thisLineIndex + 3;
+                } else {
+                        thisItem.Quantity = Quantity
+                        thisItem.Description = Name + " " + AdditionalInfoOrPrice
+                        thisItem.Price = PriceOrNextItem;
+
+                        thisLineIndex = thisLineIndex + 4;
+                }
+
+                recieptItems = append(recieptItems, thisItem)
+
+        }
+    }
+
+    RecieptDetail.PayMethod = content[endOfItemsIndex + 1]
+    RecieptDetail.OrderTotal = content[endOfItemsIndex + 3]
+    RecieptDetail.OrderTotal = content[endOfItemsIndex + 5]
+    RecieptDetail.VatNumber = content[endOfItemsIndex + 9]
+
+
     // Print to check the slice's content
     //fmt.Println(content)
     return recieptItems,RecieptDetail
@@ -185,6 +256,12 @@ body p {
                                                         </td>
                                                         <td align='right' class='tableclass'>£1.99</td>
                                                 </tr>
+                                                <tr>
+                                                <td class='tableclass'>1</td>
+                                                <td class='tableclass'><strong>Ruddles Best</strong>
+                                                </td>
+                                                <td align='right' class='tableclass'>£1.99</td>
+                                        </tr>
 
 
                                 <tr>
