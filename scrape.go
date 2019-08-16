@@ -37,8 +37,6 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
 
     }
 
-    // Pull what we need from slice
-
     RecieptDetail.Name = content[0]
     RecieptDetail.Address = content[1] + ", " + content[2]
     // some have more addresses - postcodes are 6-8 chars + space so need to offset
