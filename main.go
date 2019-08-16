@@ -2,12 +2,14 @@ package main
 
 import ( 
     "fmt"
-    //"github.com/jprobinson/eazye"
-    //"os"
-    //"strconv"
+    "github.com/jprobinson/eazye"
+    "os"
+    "strconv"
     "golang.org/x/net/html"
     "runtime"
     "strings"
+    "unicode"
+
 )
 
 type RecieptDetails struct {
@@ -34,34 +36,37 @@ type RecieptItem struct {
 
 var procs = runtime.NumCPU()
 
+//var totalSpent float64 = 0;
+
 func main() {
-    // get from env 
-    // mailserver := os.Getenv("mailserver");
-    // mailserverssl, err := strconv.ParseBool(os.Getenv("mailserverssl"));
-    // emailaddress := os.Getenv("emailaddress");
-    // password := os.Getenv("password");
-    // folder := os.Getenv("folder");
+    //get from env 
+    mailserver := os.Getenv("mailserver");
+    mailserverssl, err := strconv.ParseBool(os.Getenv("mailserverssl"));
+    emailaddress := os.Getenv("emailaddress");
+    password := os.Getenv("password");
+    folder := os.Getenv("folder");
     
-	//mailbox := eazye.MailboxInfo{mailserver, mailserverssl, emailaddress, password, folder, true}
+	mailbox := eazye.MailboxInfo{mailserver, mailserverssl, emailaddress, password, folder, true}
     
-    //mail, err := eazye.GetCommand(mailbox, "FROM orders@jdwetherspoon.co.uk", true, false)
+    mail, err := eazye.GetCommand(mailbox, "FROM orders@jdwetherspoon.co.uk", true, false)
 
-    //emailCount := len(mail)
+    emailCount := len(mail)
 
-    // Just double check 
-    //fmt.Println(emailCount, err)
+    //Just double check 
+    fmt.Println(emailCount, err)
 
-    //parseMessages(mail[0])
-
-    items, recdet := parseHTML(horrorHTML)
-
-    fmt.Println(items, recdet)
+    mailCount := 0
+    for range mail {
+        parseMessages(mail[mailCount])
+        mailCount++;
+    }
 
 }
 
-// func parseMessages(mail eazye.Email){
-//     fmt.Println("Here I am", string(mail.HTML))
-// }
+func parseMessages(mail eazye.Email){
+        items, recdet := parseHTML(string(mail.HTML))
+        fmt.Println(items, recdet)
+}
 
 func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
     bodyString := strings.NewReader(stringHTML)
@@ -84,6 +89,7 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
         } else if (tt == html.TextToken && tokenCount > 45){
                 stringContent :=  strings.TrimSpace(td)
                 if(len(stringContent) > 0){
+                        //fmt.Println(stringContent)
                         content = append(content, stringContent)
                 }
         }
@@ -92,8 +98,6 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
     }
 
     // Pull what we need from slice
-    fmt.Println(content)
-    fmt.Println("\n\n\n")
 
     RecieptDetail.Name = content[0]
     RecieptDetail.Address = content[1] + ", " + content[2]
@@ -119,7 +123,6 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
                 endOfItemsIndex = thisLineIndex; 
                 break;
         } else {
-                // additional params
                 Quantity := content[thisLineIndex]
                 Name := content[thisLineIndex + 1]
                 AdditionalInfoOrPrice := content[thisLineIndex + 2]
@@ -127,7 +130,14 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
                 
                 var thisItem RecieptItem
 
-                if(strings.Contains(AdditionalInfoOrPrice, "£")) {
+                if(!isInt(Quantity)){
+                // handle blank quantity issue
+                        thisItem.Price = thisItem.Description
+                        thisItem.Description = thisItem.Quantity
+                        thisItem.Quantity = "0"
+                        thisLineIndex = thisLineIndex + 2;
+                } else if(strings.Contains(AdditionalInfoOrPrice, "£")) {
+                        // handle prices
                         thisItem.Quantity = Quantity
                         thisItem.Description = Name
                         thisItem.Price = AdditionalInfoOrPrice;
@@ -148,14 +158,31 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
 
     RecieptDetail.PayMethod = content[endOfItemsIndex + 1]
     RecieptDetail.OrderTotal = content[endOfItemsIndex + 3]
-    RecieptDetail.OrderTotal = content[endOfItemsIndex + 5]
+    RecieptDetail.VatTotal = content[endOfItemsIndex + 5]
     RecieptDetail.VatNumber = content[endOfItemsIndex + 9]
+
+// Calculates total spent
+//     cost := strings.ReplaceAll(RecieptDetail.OrderTotal, "£", "")
+//     vat := strings.ReplaceAll(RecieptDetail.VatTotal, "£", "")
+//     totalvat, err := strconv.ParseFloat(vat, 64)
+//     totalcost, err := strconv.ParseFloat(cost, 64)
+//     fmt.Println(err);
+//     totalSpent = totalSpent + totalcost + totalvat
 
 
     // Print to check the slice's content
     //fmt.Println(content)
     return recieptItems,RecieptDetail
 }
+
+func isInt(s string) bool {
+        for _, c := range s {
+            if !unicode.IsDigit(c) {
+                return false
+            }
+        }
+        return true
+    }
 
 // Concurrent stuff to return to 
 //
