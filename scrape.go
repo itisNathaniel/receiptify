@@ -80,12 +80,15 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
                         thisItem.Quantity = Quantity
                         thisItem.Description = Name
                         thisItem.Price = AdditionalInfoOrPrice;
-
+                        thisItem.Price = strings.ReplaceAll(thisItem.Price, "£", "")
+                        thisItem.Price = strings.ReplaceAll(thisItem.Price, ".", "")
                         thisLineIndex = thisLineIndex + 3;
                 } else {
                         thisItem.Quantity = Quantity
                         thisItem.Description = Name + " " + AdditionalInfoOrPrice
                         thisItem.Price = PriceOrNextItem;
+                        thisItem.Price = strings.ReplaceAll(thisItem.Price, "£", "")
+                        thisItem.Price = strings.ReplaceAll(thisItem.Price, ".", "")
 
                         thisLineIndex = thisLineIndex + 4;
                 }
@@ -97,16 +100,19 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
 
     RecieptDetail.PayMethod = content[endOfItemsIndex + 1]
     RecieptDetail.OrderTotal = content[endOfItemsIndex + 3]
-    RecieptDetail.VatTotal = content[endOfItemsIndex + 5]
+    vat := content[endOfItemsIndex + 5]
     RecieptDetail.VatNumber = content[endOfItemsIndex + 9]
+    RecieptDetail.VatNumber = strings.ReplaceAll(RecieptDetail.VatNumber , " ", "")
+
 
     cost := strings.ReplaceAll(RecieptDetail.OrderTotal, "£", "")
     cost = strings.ReplaceAll(cost, ".", "")
-    vat := strings.ReplaceAll(RecieptDetail.VatTotal, "£", "")
-    vat = strings.ReplaceAll(vat, ",", "")
+    vat = strings.ReplaceAll(vat, "£", "")
+    vat = strings.ReplaceAll(vat, ".", "")
     totalvat, err := strconv.Atoi(vat)
+    RecieptDetail.VatTotal = int64(totalvat)
     totalcost, err := strconv.Atoi(cost)
-    RecieptDetail.OrderWithVat = int64(totalcost + totalvat)
+    RecieptDetail.OrderWithVat = int64(totalcost)
 
     layout := "Monday, January 02, 2006 15:04"
     dateString := RecieptDetail.OrderDate + " " + RecieptDetail.OrderTime

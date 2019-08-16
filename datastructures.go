@@ -17,7 +17,7 @@ type RecieptDetails struct {
     Table           string
     PayMethod       string
     OrderTotal      string
-    VatTotal        string
+    VatTotal        int64
     OrderWithVat    int64
     Name            string
     Address         string
