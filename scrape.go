@@ -6,7 +6,7 @@ import (
     "unicode"
     "strconv"
     "fmt"
-
+    "time"
 )
 
 func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
@@ -106,7 +106,13 @@ func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
     vat = strings.ReplaceAll(vat, ",", "")
     totalvat, err := strconv.Atoi(vat)
     totalcost, err := strconv.Atoi(cost)
-    RecieptDetail.OrderWithVat = totalcost + totalvat
+    RecieptDetail.OrderWithVat = int64(totalcost + totalvat)
+
+    layout := "Monday, January 02, 2006 15:04"
+    dateString := RecieptDetail.OrderDate + " " + RecieptDetail.OrderTime
+    time, err := time.Parse(layout, dateString)
+
+    RecieptDetail.OrderDateTime = time
 
     if(err != nil) {
         fmt.Println(err)
