@@ -95,7 +95,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                         }
 
                         modelItem.Description = item.Description
-                        modelItem.Unit = item.Quantity
+                        modelItem.Quantity = stringToInt(item.Quantity)
                         modelItem.Amount = price
                         modelItem.Currency = "GBP"
                         

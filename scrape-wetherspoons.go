@@ -34,8 +34,6 @@ func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails){
                         content = append(content, stringContent)
                 }
         }
-
-
     }
 
     RecieptDetail.Name = content[0]
