@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-func getMail() ([]eazye.Email){
+func getMail(email string) ([]eazye.Email){
     mailserver := os.Getenv("mailserver");
     mailserverssl, err := strconv.ParseBool(os.Getenv("mailserverssl"));
     emailaddress := os.Getenv("emailaddress");
@@ -16,7 +16,7 @@ func getMail() ([]eazye.Email){
     
 	mailbox := eazye.MailboxInfo{mailserver, mailserverssl, emailaddress, password, folder, true}
     
-    mail, err := eazye.GetCommand(mailbox, "FROM orders@jdwetherspoon.co.uk", true, false)
+    mail, err := eazye.GetCommand(mailbox, "FROM " + email, true, false)
 
     if(err != nil) {
         fmt.Println(err)

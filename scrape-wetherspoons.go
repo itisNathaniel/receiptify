@@ -9,7 +9,7 @@ import (
     "time"
 )
 
-func parseHTML(stringHTML string) ([]RecieptItem, RecieptDetails){
+func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails){
     bodyString := strings.NewReader(stringHTML)
     token := html.NewTokenizer(bodyString)
     content := []string{}
