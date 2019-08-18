@@ -6,9 +6,10 @@ import (
     "runtime"
     "strings"
     "strconv"
-    "os"
+    "bytes"
     "encoding/json"
-    "github.com/dghubble/sling"
+    "net/http"
+    "os"
 )
 
 
@@ -74,7 +75,8 @@ type Reciept struct {
 	Total			   int64			`json:"total"`
 	Currency		   string			`json:"currency"`
 	Items			   []MonzoRecieptItem  	`json:"items"`
-	Merchant		   Reciept_Merchant `json:"merchant"`
+    Merchant		   Reciept_Merchant `json:"merchant"`
+    RecieptTaxes       []Reciept_Tax    `json:"taxes"`
 }
 
 type MonzoRecieptItem struct {
@@ -99,7 +101,6 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
             transactionSearch := transactions[j]
 
             if(monzoTransaction.CurrencyAmount == transactionSearch.details.OrderWithVat){
-                fmt.Println("GOT HERE")
                 transactionDate := transactionSearch.details.OrderDateTime
                 // check the date 
                 diff := transactionDate.Sub(monzoDate)
@@ -110,13 +111,12 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 
 
                 // sometimes they have a backlog in sending them out, it seems
-                if(diff.Hours() < 1.5){
-                    fmt.Println("WOOO   " + " !! " + monzoTransaction.TransactionId + "!!!!! " + identifier)
+                if(diff.Hours() < 1.5 && diff.Hours() > 0){
                     
                     var thisTransaction = monzoTransaction
                     var items []MonzoRecieptItem
 
-                    fmt.Println("!!!!! SEARCH RESULT")
+                    fmt.Println("!!!!! SEARCH RESULT", diff.Hours())
                     fmt.Println(transactionSearch)
 
                     for k := range transactionSearch.item {
@@ -127,8 +127,6 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                         if(err != nil) {
                             fmt.Println(err)
                         }
-                        fmt.Println(item.Price + " ---- ")
-                        fmt.Println(price)
 
                         modelItem.Description = item.Description
                         modelItem.Unit = item.Quantity
@@ -149,11 +147,14 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                     merchant.StorePostcode = transactionSearch.details.Postcode
 
                     // Tax
+                    var taxes []Reciept_Tax
+
                     var tax Reciept_Tax
                     tax.Description = "VAT"
                     tax.Currency = "GBP"
                     tax.Amount = transactionSearch.details.VatTotal
                     tax.TaxNumber = transactionSearch.details.VatNumber
+                    taxes= append(taxes, tax)
 
                     reciept := Reciept{
                         TransactionID: thisTransaction.TransactionId,
@@ -162,7 +163,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                         Currency: "GBP",
                         Items: items, 
                         Merchant: merchant,
-                        //Tax: tax,
+                        RecieptTaxes: taxes,
                         
                     }
 
@@ -180,14 +181,25 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 
 func AddReciept(reciept Reciept) (string, error) {
 
-    body := reciept;
+    json, err := json.Marshal(reciept)
+    if err != nil {
+        panic(err)
+    }
 
-    monzoBase := sling.New().Base("https://api.monzo.com/").Set("Authorization", "Bearer " + os.Getenv("accesstoken"))
-    path := fmt.Sprintf("transaction-receipts")
-    
-    req, err := monzoBase.New().Put(path).BodyJSON(body).Request()
+    fmt.Println(json)
 
-    fmt.Println(body, req, err)
+    client := &http.Client{}
+    url := "https://api.monzo.com/transaction-receipts"
+    req, err := http.NewRequest("PUT", url,  bytes.NewBuffer(json))
+    req.Header.Set("Content-Type", "application/json; charset=utf-8")
+    req.Header.Set("Authorization", "Bearer " + os.Getenv("accesstoken"))
+
+    resp, err := client.Do(req)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Println(resp.StatusCode)
 
 	return "done", err
 }
