@@ -14,24 +14,28 @@ var transactions []Transaction
 func main() {
 
     //fetch mail
-    wetherspoonEmails := getMail("orders@jdwetherspoon.co.uk")
+//    wetherspoonEmails := getMail("FROM orders@jdwetherspoon.co.uk")
 
-    //print to console how many reciepts we've got
-    emailCount := len(wetherspoonEmails)
-    fmt.Println(emailCount)
+    trainlineEmails := getMail(`TEXT "Your booking confirmation. Transaction Id" FROM "auto-confirm@info.thetrainline.com"`)
 
-    // fetch monzo transactions
-    monzoOutput := monzoFunc()
+    fmt.Println(string(trainlineEmails[0].HTML))
 
-    // parse all spooms emails emails
-    mailCount := 0
-    for range wetherspoonEmails {
-        parseWetherspoon(wetherspoonEmails[mailCount])
-        mailCount++;
-    }
+    // //print to console how many reciepts we've got
+    // emailCount := len(wetherspoonEmails)
+    // fmt.Println(emailCount)
 
-    // match up transactions
-    matchTransactionsMonzo(monzoOutput, transactions)
+    // // fetch monzo transactions
+    // monzoOutput := monzoFunc()
+
+    // // parse all spooms emails emails
+    // mailCount := 0
+    // for range wetherspoonEmails {
+    //     parseWetherspoon(wetherspoonEmails[mailCount])
+    //     mailCount++;
+    // }
+
+    // // match up transactions
+    // matchTransactionsMonzo(monzoOutput, transactions)
 
 }
 
