@@ -70,7 +70,6 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
     for i := range monzoTransact {
         monzoDate := monzoTransact[i].Date
         monzoTransaction := monzoTransact[i]
-        fmt.Println(monzoTransaction.CurrencyAmount)
         for j := range transactions {
             transactionSearch := transactions[j]
 
@@ -85,13 +84,10 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 
 
                 // time tolerance depends on merchant
-                fmt.Println(diff.Hours())
                 if(diff.Hours() < hourTolerance && diff.Hours() > 0){
                     
                     var thisTransaction = monzoTransaction
                     var items []MonzoRecieptItem
-
-                    fmt.Println(transactionSearch)
 
                     for k := range transactionSearch.item {
                         item := transactionSearch.item[k]
