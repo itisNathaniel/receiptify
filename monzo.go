@@ -36,12 +36,18 @@ func monzoFunc() ([]MonzoTransaction) {
     var transactionList []MonzoTransaction
 
     layout := "2006-01-02T15:04:05.000Z"
+    layoutAlt := "2006-01-02T15:04:05.00Z"
     for {
         var transaction MonzoTransaction
         if(i < len(transactions)){
-            if(transactions[i].Merchant.Name == "JD Wetherspoon" && transactions[i].Merchant.IsOnline == true){
-                time, err := time.Parse(layout, transactions[i].Created)
-                transaction.Date = time
+            if((transactions[i].Merchant.Name == "JD Wetherspoon" || transactions[i].Merchant.Name == "Trainline" ) && transactions[i].Merchant.IsOnline == true){
+                thisTime, err := time.Parse(layout, transactions[i].Created)
+                if err != nil {
+                    err = nil
+                    thisTime, err = time.Parse(layoutAlt, transactions[i].Created)
+                }
+                
+                transaction.Date = thisTime
                 transaction.CurrencyAmount = -transactions[i].Amount
                 transaction.TransactionId = transactions[i].ID
 
@@ -59,11 +65,12 @@ func monzoFunc() ([]MonzoTransaction) {
         return transactionList
 }
 
-func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Transaction){
+func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Transaction, hourTolerance float64, MerchantName string){
 
     for i := range monzoTransact {
         monzoDate := monzoTransact[i].Date
         monzoTransaction := monzoTransact[i]
+        fmt.Println(monzoTransaction.CurrencyAmount)
         for j := range transactions {
             transactionSearch := transactions[j]
 
@@ -77,8 +84,9 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                 identifier = strings.Replace(identifier, " ", "-", -1)
 
 
-                // sometimes they have a backlog in sending them out, it seems
-                if(diff.Hours() < 1.5 && diff.Hours() > 0){
+                // time tolerance depends on merchant
+                fmt.Println(diff.Hours())
+                if(diff.Hours() < hourTolerance && diff.Hours() > 0){
                     
                     var thisTransaction = monzoTransaction
                     var items []MonzoRecieptItem
@@ -89,7 +97,11 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                         item := transactionSearch.item[k]
                         var modelItem MonzoRecieptItem
 
-                        price, err := strconv.ParseInt(item.Price, 10, 64)
+                        nospace := strings.Replace(item.Price, " ", "", -1)
+                        stringVal := strings.ReplaceAll(nospace, ".", "")
+                        stringVal = strings.ReplaceAll(stringVal, "£", "")
+
+                        price, err := strconv.ParseInt(stringVal, 10, 64)
                         if(err != nil) {
                             fmt.Println(err)
                         }
@@ -106,7 +118,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 
                     // Merchant
                     var merchant Reciept_Merchant
-                    merchant.Name = "JD Wetherspoon"
+                    merchant.Name = MerchantName
                     merchant.Online = false
                     merchant.StoreName = transactionSearch.details.Name
                     merchant.StorePhone = transactionSearch.details.Phone
@@ -132,6 +144,8 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
                         RecieptTaxes: taxes,
                         
                     }
+
+                    fmt.Println("Match Found ✅")
 
                     res, err := AddReciept(reciept)
 
