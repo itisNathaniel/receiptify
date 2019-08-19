@@ -10,13 +10,13 @@ import (
 	"golang.org/x/net/html"
 )
 
-func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails) {
+func parseHTMLWetherspoon(stringHTML string) ([]receiptItem, receiptDetails) {
 	bodyString := strings.NewReader(stringHTML)
 	token := html.NewTokenizer(bodyString)
 	content := []string{}
 
-	recieptItems := []RecieptItem{}
-	RecieptDetail := RecieptDetails{}
+	receiptItems := []receiptItem{}
+	receiptDetail := receiptDetails{}
 	tokenCount := 0
 
 	// Extract from HTML
@@ -25,7 +25,7 @@ func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails) {
 		t := token.Token()
 		td := t.Data
 		tokenCount++
-		// line 45 is where the reciept content starts
+		// line 45 is where the receipt content starts
 		if tt == html.ErrorToken {
 			break
 		} else if tt == html.TextToken && tokenCount > 45 {
@@ -37,8 +37,8 @@ func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails) {
 		}
 	}
 
-	RecieptDetail.Name = content[0]
-	RecieptDetail.Address = content[1] + ", " + content[2]
+	receiptDetail.Name = content[0]
+	receiptDetail.Address = content[1] + ", " + content[2]
 	// some have more addresses - postcodes are 6-8 chars + space so need to offset
 	var addressOffset int = 0
 	if len(content[3]) < 9 {
@@ -46,12 +46,12 @@ func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails) {
 	} else {
 		addressOffset = 1
 	}
-	RecieptDetail.Postcode = content[3+addressOffset]
-	RecieptDetail.Phone = (content[4+addressOffset])[11:]
-	RecieptDetail.OrderID = content[6+addressOffset]
-	RecieptDetail.OrderDate = (content[7+addressOffset])[12:]
-	RecieptDetail.OrderTime = (content[8+addressOffset])[12:]
-	RecieptDetail.Table = content[10+addressOffset]
+	receiptDetail.Postcode = content[3+addressOffset]
+	receiptDetail.Phone = (content[4+addressOffset])[11:]
+	receiptDetail.OrderID = content[6+addressOffset]
+	receiptDetail.OrderDate = (content[7+addressOffset])[12:]
+	receiptDetail.OrderTime = (content[8+addressOffset])[12:]
+	receiptDetail.Table = content[10+addressOffset]
 
 	var endOfItemsIndex int
 	thisLineIndex := 14 + addressOffset
@@ -66,7 +66,7 @@ func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails) {
 			AdditionalInfoOrPrice := content[thisLineIndex+2]
 			PriceOrNextItem := content[thisLineIndex+3]
 
-			var thisItem RecieptItem
+			var thisItem receiptItem
 
 			if !isInt(Quantity) {
 				// handle blank quantity issue
@@ -92,37 +92,37 @@ func parseHTMLWetherspoon(stringHTML string) ([]RecieptItem, RecieptDetails) {
 				thisLineIndex = thisLineIndex + 4
 			}
 
-			recieptItems = append(recieptItems, thisItem)
+			receiptItems = append(receiptItems, thisItem)
 
 		}
 	}
 
-	RecieptDetail.PayMethod = content[endOfItemsIndex+1]
-	RecieptDetail.OrderTotal = content[endOfItemsIndex+3]
+	receiptDetail.PayMethod = content[endOfItemsIndex+1]
+	receiptDetail.OrderTotal = content[endOfItemsIndex+3]
 	vat := content[endOfItemsIndex+5]
-	RecieptDetail.VatNumber = content[endOfItemsIndex+9]
-	RecieptDetail.VatNumber = strings.ReplaceAll(RecieptDetail.VatNumber, " ", "")
+	receiptDetail.VatNumber = content[endOfItemsIndex+9]
+	receiptDetail.VatNumber = strings.ReplaceAll(receiptDetail.VatNumber, " ", "")
 
-	cost := strings.ReplaceAll(RecieptDetail.OrderTotal, "£", "")
+	cost := strings.ReplaceAll(receiptDetail.OrderTotal, "£", "")
 	cost = strings.ReplaceAll(cost, ".", "")
 	vat = strings.ReplaceAll(vat, "£", "")
 	vat = strings.ReplaceAll(vat, ".", "")
 	totalvat, err := strconv.Atoi(vat)
-	RecieptDetail.VatTotal = int64(totalvat)
+	receiptDetail.VatTotal = int64(totalvat)
 	totalcost, err := strconv.Atoi(cost)
-	RecieptDetail.OrderWithVat = int64(totalcost)
+	receiptDetail.OrderWithVat = int64(totalcost)
 
 	layout := "Monday, January 02, 2006 15:04"
-	dateString := RecieptDetail.OrderDate + " " + RecieptDetail.OrderTime
+	dateString := receiptDetail.OrderDate + " " + receiptDetail.OrderTime
 	time, err := time.Parse(layout, dateString)
 
-	RecieptDetail.OrderDateTime = time
+	receiptDetail.OrderDateTime = time
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return recieptItems, RecieptDetail
+	return receiptItems, receiptDetail
 }
 
 func isInt(s string) bool {

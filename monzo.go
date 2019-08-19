@@ -80,7 +80,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 				// check the date
 				diff := transactionDate.Sub(monzoDate)
 
-				// generate an ID (should be replicated between runs to not create multiple reciepts for one event)
+				// generate an ID (should be replicated between runs to not create multiple receipts for one event)
 				identifier := strconv.FormatInt(monzoDate.Unix(), 10) + "-" + transactionSearch.details.Name
 				identifier = strings.Replace(identifier, " ", "-", -1)
 
@@ -88,11 +88,11 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 				if diff.Hours() < hourTolerance && diff.Hours() > 0 {
 
 					var thisTransaction = monzoTransaction
-					var items []MonzoRecieptItem
+					var items []MonzoreceiptItem
 
 					for k := range transactionSearch.item {
 						item := transactionSearch.item[k]
-						var modelItem MonzoRecieptItem
+						var modelItem MonzoreceiptItem
 
 						nospace := strings.Replace(item.Price, " ", "", -1)
 						stringVal := strings.ReplaceAll(nospace, ".", "")
@@ -111,10 +111,10 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 						items = append(items, modelItem)
 					}
 
-					// PASS and make the monzo reciept
+					// PASS and make the monzo receipt
 
 					// Merchant
-					var merchant Reciept_Merchant
+					var merchant receipt_Merchant
 					merchant.Name = MerchantName
 					merchant.Online = false
 					merchant.StoreName = transactionSearch.details.Name
@@ -122,28 +122,28 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 					merchant.StorePostcode = transactionSearch.details.Postcode
 
 					// Tax
-					var taxes []Reciept_Tax
+					var taxes []receipt_Tax
 
-					var tax Reciept_Tax
+					var tax receipt_Tax
 					tax.Description = "VAT"
 					tax.Currency = "GBP"
 					tax.Amount = transactionSearch.details.VatTotal
 					tax.TaxNumber = transactionSearch.details.VatNumber
 					taxes = append(taxes, tax)
 
-					reciept := Reciept{
+					receipt := receipt{
 						TransactionID: thisTransaction.TransactionId,
 						ExternalID:    identifier,
 						Total:         thisTransaction.CurrencyAmount,
 						Currency:      "GBP",
 						Items:         items,
 						Merchant:      merchant,
-						RecieptTaxes:  taxes,
+						receiptTaxes:  taxes,
 					}
 
 					fmt.Println("Match Found ✅")
 
-					res, err := addReciept(reciept)
+					res, err := addreceipt(receipt)
 
 					fmt.Println(res, err)
 
@@ -155,9 +155,9 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 	}
 }
 
-func addReciept(reciept Reciept) (string, error) {
+func addreceipt(receipt receipt) (string, error) {
 
-	json, err := json.Marshal(reciept)
+	json, err := json.Marshal(receipt)
 	if err != nil {
 		panic(err)
 	}

@@ -47,10 +47,10 @@ func parseTrainlineHTML(htmlStr string) Transaction {
 	}
 
 	var transaction Transaction
-	var details RecieptDetails
+	var details receiptDetails
 
-	var items []RecieptItem
-	recieptItems := false
+	var items []receiptItem
+	receiptItems := false
 
 	// For the actual content
 	k := 0
@@ -61,12 +61,12 @@ func parseTrainlineHTML(htmlStr string) Transaction {
 				//transactionDate = content[k+1]
 				//fmt.Println(transactionDate)
 			} else if content[k] == "Fare details" {
-				recieptItems = true
+				receiptItems = true
 
 			} else if strings.Contains(content[k], "Other costs*") { // end of items
-				recieptItems = false
+				receiptItems = false
 
-			} else if recieptItems {
+			} else if receiptItems {
 
 				if strings.HasPrefix(content[k], "Booking") {
 					k++
@@ -78,7 +78,7 @@ func parseTrainlineHTML(htmlStr string) Transaction {
 					k++
 				}
 
-				var thisItem RecieptItem
+				var thisItem receiptItem
 				thisItem.Quantity = strings.Split(content[k], "x")[0]
 				thisItem.Description = stripTrailing(strings.Split(content[k], "x")[1])
 				thisItem.Price = strings.Split(content[k+1], "x")[1]
@@ -87,7 +87,7 @@ func parseTrainlineHTML(htmlStr string) Transaction {
 				items = append(items, thisItem)
 
 			} else if content[k] == "Booking Fee:" {
-				var thisItem RecieptItem
+				var thisItem receiptItem
 				thisItem.Quantity = "1"
 				thisItem.Description = "Booking Fee"
 

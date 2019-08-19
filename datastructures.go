@@ -6,11 +6,11 @@ import (
 )
 
 type Transaction struct {
-	details RecieptDetails
-	item    []RecieptItem
+	details receiptDetails
+	item    []receiptItem
 }
 
-type RecieptDetails struct {
+type receiptDetails struct {
 	OrderID       string
 	OrderDate     string
 	OrderTime     string
@@ -27,7 +27,7 @@ type RecieptDetails struct {
 	VatNumber     string
 }
 
-type RecieptItem struct {
+type receiptItem struct {
 	Description string
 	Quantity    string
 	Price       string
@@ -39,14 +39,14 @@ type MonzoTransaction struct {
 	TransactionId  string
 }
 
-type Reciept_Tax struct {
+type receipt_Tax struct {
 	Description string `json:"description"`
 	Amount      int64  `json:"amount"`
 	Currency    string `json:"currency"`
 	TaxNumber   string `json:"tax_number"`
 }
 
-type Reciept_Merchant struct {
+type receipt_Merchant struct {
 	Name          string `json:"name"`
 	Online        bool   `json:"online"`
 	StorePhone    string `json:"phone"`
@@ -54,17 +54,17 @@ type Reciept_Merchant struct {
 	StorePostcode string `json:"store_postcode"`
 }
 
-type Reciept struct {
+type receipt struct {
 	TransactionID string             `json:"transaction_id"`
 	ExternalID    string             `json:"external_id"`
 	Total         int64              `json:"total"`
 	Currency      string             `json:"currency"`
-	Items         []MonzoRecieptItem `json:"items"`
-	Merchant      Reciept_Merchant   `json:"merchant"`
-	RecieptTaxes  []Reciept_Tax      `json:"taxes"`
+	Items         []MonzoreceiptItem `json:"items"`
+	Merchant      receipt_Merchant   `json:"merchant"`
+	receiptTaxes  []receipt_Tax      `json:"taxes"`
 }
 
-type MonzoRecieptItem struct {
+type MonzoreceiptItem struct {
 	Description string `json:"description"`
 	Quantity    int64  `json:"quantity"`
 	Unit        string `json:"unit"`
