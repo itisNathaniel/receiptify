@@ -33,10 +33,10 @@ func main() {
     
     for i := range trainlineEmails {
         if (!strings.Contains(trainlineEmails[i].Subject, "Your replacement booking confirmation")){
-            trainlineTransactions = append(trainlineTransactions, parseTrainline(trainlineEmails[i]))
+            thisResult := parseTrainline(trainlineEmails[i])
+            trainlineTransactions = append(trainlineTransactions, thisResult)
         }
     }
-    //fmt.Println(trainlineTransactions)
     matchTransactionsMonzo(monzoOutput, trainlineTransactions, 3, "Trainline")
 
     //parse all spoons emails emails
