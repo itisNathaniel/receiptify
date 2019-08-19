@@ -13,7 +13,8 @@ import (
 	"github.com/tjvr/go-monzo"
 )
 
-func monzoFunc() []MonzoTransaction {
+// Retrieve from Monzo transactions matching
+func getMonzoTransactions() []MonzoTransaction {
 	cl := monzo.Client{
 		BaseURL:     "https://api.monzo.com",
 		AccessToken: os.Getenv("accesstoken"),

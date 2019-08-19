@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"runtime"
 	"strings"
 
@@ -14,20 +13,18 @@ var monzoOutput []MonzoTransaction
 
 func main() {
 
+	// fetch emails
 	wetherspoonEmails := getMail("FROM orders@jdwetherspoon.co.uk")
 	trainlineEmails := getMail(`TEXT "Your booking confirmation. Transaction Id" FROM "auto-confirm@info.thetrainline.com"`)
 
-	//print to console how many reciepts we've got
-	emailCount := len(wetherspoonEmails)
-	fmt.Println(emailCount)
-
 	// fetch monzo transactions
-	monzoOutput = monzoFunc()
+	monzoOutput = getMonzoTransactions()
 
-	// parse all trainline emails
+	// structs for transactions
 	var WetherspoonsTransactions []Transaction
 	var trainlineTransactions []Transaction
 
+	// parse all trainline emails
 	for i := range trainlineEmails {
 		if !strings.Contains(trainlineEmails[i].Subject, "Your replacement booking confirmation") {
 			thisResult := parseTrainline(trainlineEmails[i])
@@ -35,20 +32,20 @@ func main() {
 		}
 	}
 
-	//parse all spoons emails emails
+	// parse all spoons emails emails
 	for i := range wetherspoonEmails {
 		thisResult := parseWetherspoon(wetherspoonEmails[i])
 		WetherspoonsTransactions = append(WetherspoonsTransactions, thisResult)
 	}
 
-	//match up transactions
+	// match up transactions
 	matchTransactionsMonzo(monzoOutput, trainlineTransactions, 3, "Trainline")
 	matchTransactionsMonzo(monzoOutput, WetherspoonsTransactions, 1.5, "JD Wetherspoon")
 
 }
 
+// Build up transaction from HTML and metadata
 func parseWetherspoon(mail eazye.Email) Transaction {
-	// call for HTML parsing
 	items, recdet := parseHTMLWetherspoon(string(mail.HTML))
 	var thisTransaction Transaction
 	thisTransaction.details = recdet
@@ -58,7 +55,6 @@ func parseWetherspoon(mail eazye.Email) Transaction {
 }
 
 func parseTrainline(mail eazye.Email) Transaction {
-
 	var transaction = parseTrainlineHTML(string(mail.HTML))
 	transaction.details.OrderDateTime = mail.InternalDate
 	return transaction
