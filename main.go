@@ -10,8 +10,6 @@ import (
 
 var procs = runtime.NumCPU()
 
-var WetherspoonsTransactions []Transaction
-
 var monzoOutput []MonzoTransaction
 
 func main() {
@@ -27,7 +25,7 @@ func main() {
 	monzoOutput = monzoFunc()
 
 	// parse all trainline emails
-
+	var WetherspoonsTransactions []Transaction
 	var trainlineTransactions []Transaction
 
 	for i := range trainlineEmails {
@@ -36,26 +34,27 @@ func main() {
 			trainlineTransactions = append(trainlineTransactions, thisResult)
 		}
 	}
-	matchTransactionsMonzo(monzoOutput, trainlineTransactions, 3, "Trainline")
 
 	//parse all spoons emails emails
 	for i := range wetherspoonEmails {
-		parseWetherspoon(wetherspoonEmails[i])
+		thisResult := parseWetherspoon(wetherspoonEmails[i])
+		WetherspoonsTransactions = append(WetherspoonsTransactions, thisResult)
 	}
 
 	//match up transactions
+	matchTransactionsMonzo(monzoOutput, trainlineTransactions, 3, "Trainline")
 	matchTransactionsMonzo(monzoOutput, WetherspoonsTransactions, 1.5, "JD Wetherspoon")
 
 }
 
-func parseWetherspoon(mail eazye.Email) {
+func parseWetherspoon(mail eazye.Email) Transaction {
 	// call for HTML parsing
 	items, recdet := parseHTMLWetherspoon(string(mail.HTML))
 	var thisTransaction Transaction
 	thisTransaction.details = recdet
 	thisTransaction.item = items
 
-	WetherspoonsTransactions = append(WetherspoonsTransactions, thisTransaction)
+	return thisTransaction
 }
 
 func parseTrainline(mail eazye.Email) Transaction {

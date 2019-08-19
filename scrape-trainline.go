@@ -80,7 +80,7 @@ func parseTrainlineHTML(htmlStr string) Transaction {
 
 				var thisItem RecieptItem
 				thisItem.Quantity = strings.Split(content[k], "x")[0]
-				thisItem.Description = StripTrailing(strings.Split(content[k], "x")[1])
+				thisItem.Description = stripTrailing(strings.Split(content[k], "x")[1])
 				thisItem.Price = strings.Split(content[k+1], "x")[1]
 				k++
 

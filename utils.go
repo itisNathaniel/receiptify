@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func StripTrailing(start string) string {
+func stripTrailing(start string) string {
 	nospace := strings.TrimSpace(start)
 
 	return nospace
@@ -44,7 +44,7 @@ func createTextTransaction(transaction Transaction) string {
 	var stringOut string
 	stringOut = (transaction.details.Name + "\n" + transaction.details.Address + ", " + transaction.details.Postcode + "\n\n")
 	for i := range transaction.item {
-		stringOut = stringOut + (StripTrailing(transaction.item[i].Quantity) + " " + StripTrailing(transaction.item[i].Price) + " " + StripTrailing(transaction.item[i].Description) + "\n")
+		stringOut = stringOut + (stripTrailing(transaction.item[i].Quantity) + " " + stripTrailing(transaction.item[i].Price) + " " + stripTrailing(transaction.item[i].Description) + "\n")
 	}
 	stringOut = stringOut + ("\nVAT (" + transaction.details.VatNumber + ") " + "\n\n")
 	return stringOut

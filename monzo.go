@@ -142,7 +142,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 
 					fmt.Println("Match Found ✅")
 
-					res, err := AddReciept(reciept)
+					res, err := addReciept(reciept)
 
 					fmt.Println(res, err)
 
@@ -154,7 +154,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 	}
 }
 
-func AddReciept(reciept Reciept) (string, error) {
+func addReciept(reciept Reciept) (string, error) {
 
 	json, err := json.Marshal(reciept)
 	if err != nil {
