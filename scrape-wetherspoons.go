@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -40,7 +39,7 @@ func parseHTMLWetherspoon(stringHTML string) ([]receiptItem, receiptDetails) {
 	receiptDetail.Name = content[0]
 	receiptDetail.Address = content[1] + ", " + content[2]
 	// some have more addresses - postcodes are 6-8 chars + space so need to offset
-	var addressOffset int = 0
+	var addressOffset int
 	if len(content[3]) < 9 {
 		addressOffset = 0
 	} else {
@@ -99,18 +98,11 @@ func parseHTMLWetherspoon(stringHTML string) ([]receiptItem, receiptDetails) {
 
 	receiptDetail.PayMethod = content[endOfItemsIndex+1]
 	receiptDetail.OrderTotal = content[endOfItemsIndex+3]
-	vat := content[endOfItemsIndex+5]
 	receiptDetail.VatNumber = content[endOfItemsIndex+9]
 	receiptDetail.VatNumber = strings.ReplaceAll(receiptDetail.VatNumber, " ", "")
 
-	cost := strings.ReplaceAll(receiptDetail.OrderTotal, "£", "")
-	cost = strings.ReplaceAll(cost, ".", "")
-	vat = strings.ReplaceAll(vat, "£", "")
-	vat = strings.ReplaceAll(vat, ".", "")
-	totalvat, err := strconv.Atoi(vat)
-	receiptDetail.VatTotal = int64(totalvat)
-	totalcost, err := strconv.Atoi(cost)
-	receiptDetail.OrderWithVat = int64(totalcost)
+	receiptDetail.VatTotal = stringToPence(content[endOfItemsIndex+5])
+	receiptDetail.OrderWithVat = stringToPence(receiptDetail.OrderTotal)
 
 	layout := "Monday, January 02, 2006 15:04"
 	dateString := receiptDetail.OrderDate + " " + receiptDetail.OrderTime
