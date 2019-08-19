@@ -18,3 +18,4 @@
 
 - This works with reciepts from Trainline I've tested from 2017-present and with Wetherspoons reciepts since 2017
 - If you fix any bugs or add new merchants, please feel free to PR them in!
+- Monzo's API returns 403 for prepaid account matches, so we can't match those currently. See more [in the post](//nathaniel.work/receiptify-post)
