@@ -7,7 +7,7 @@
 
 1. Install Go! [Official Docs](https://golang.org/doc/install) and [DigitalOcean Guide](https://www.digitalocean.com/community/tutorials/how-to-install-go-and-set-up-a-local-programming-environment-on-macos) might help.
 1. Clone the repo into your Go `src` directory
-3. Rename `.example.env` to `.env`, fill in the environment variables. `accesstoken` is your access token from [developer.monzo.com](//developer.monzo.com)
+3. Rename `.example.env` to `.env`, fill in the environment variables. `accesstoken` is your access token from [developers.monzo.com](//developers.monzo.com)
 4. `cd` into your the receiptify directory
 5. Import your environment variables using `set -a`, `source .env` and `set +a`
 6. Run it! Use `go run *.go` 
