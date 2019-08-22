@@ -141,11 +141,14 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 						receiptTaxes:  taxes,
 					}
 
-					fmt.Println("Match Found ✅")
+					fmt.Println("✅   Match Found on ", monzoDate, " for ", MerchantName)
 
 					res, err := addreceipt(receipt)
 
-					fmt.Println(res, err)
+					if (err != nil) || (res != 200) {
+						fmt.Println(res)
+						panic(err)
+					}
 
 				}
 
@@ -155,7 +158,7 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 	}
 }
 
-func addreceipt(receipt receipt) (string, error) {
+func addreceipt(receipt receipt) (int, error) {
 
 	json, err := json.Marshal(receipt)
 	if err != nil {
@@ -173,7 +176,5 @@ func addreceipt(receipt receipt) (string, error) {
 		panic(err)
 	}
 
-	fmt.Println(resp.StatusCode)
-
-	return "done", err
+	return resp.StatusCode, err
 }
