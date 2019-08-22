@@ -3,44 +3,82 @@ package main
 import (
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/jprobinson/eazye"
 )
 
 var procs = runtime.NumCPU()
 
-var monzoOutput []MonzoTransaction
-
 func main() {
 
-	// fetch emails
-	wetherspoonEmails := getMail("FROM orders@jdwetherspoon.co.uk")
-	trainlineEmails := getMail(`TEXT "Your booking confirmation. Transaction Id" FROM "auto-confirm@info.thetrainline.com"`)
+	// Initial Collection of Data
+	var collect sync.WaitGroup
+	var wetherspoonEmails []eazye.Email
+	var trainlineEmails []eazye.Email
+	var monzoTransactions []MonzoTransaction
 
-	// fetch monzo transactions
-	monzoOutput = getMonzoTransactions()
+	collect.Add(1)
+	go func() {
+		wetherspoonEmails = getMail("FROM orders@jdwetherspoon.co.uk")
+		collect.Done()
+	}()
+	collect.Add(1)
+	go func() {
+		trainlineEmails = getMail(`TEXT "Your booking confirmation. Transaction Id" FROM "auto-confirm@info.thetrainline.com"`)
+		collect.Done()
+	}()
+	collect.Add(1)
+	go func() {
+		monzoTransactions = getMonzoTransactions()
+		collect.Done()
+	}()
 
-	// structs for transactions
+	collect.Wait()
+
+	// Parse the data
+	var parse sync.WaitGroup
 	var WetherspoonsTransactions []Transaction
 	var trainlineTransactions []Transaction
 
-	// parse all trainline emails
-	for i := range trainlineEmails {
-		if !strings.Contains(trainlineEmails[i].Subject, "Your replacement booking confirmation") {
-			thisResult := parseTrainline(trainlineEmails[i])
-			trainlineTransactions = append(trainlineTransactions, thisResult)
+	parse.Add(len(trainlineEmails))
+	go func() {
+		for i := range trainlineEmails {
+			if !strings.Contains(trainlineEmails[i].Subject, "Your replacement booking confirmation") {
+				thisResult := parseTrainline(trainlineEmails[i])
+				trainlineTransactions = append(trainlineTransactions, thisResult)
+			}
+			parse.Done()
 		}
-	}
+	}()
 
-	// parse all spoons emails emails
-	for i := range wetherspoonEmails {
-		thisResult := parseWetherspoon(wetherspoonEmails[i])
-		WetherspoonsTransactions = append(WetherspoonsTransactions, thisResult)
-	}
+	parse.Add(len(wetherspoonEmails))
+	go func() {
+		for i := range wetherspoonEmails {
+			thisResult := parseWetherspoon(wetherspoonEmails[i])
+			WetherspoonsTransactions = append(WetherspoonsTransactions, thisResult)
+			parse.Done()
+		}
+	}()
 
-	// match up transactions
-	matchTransactionsMonzo(monzoOutput, trainlineTransactions, 3, "Trainline")
-	matchTransactionsMonzo(monzoOutput, WetherspoonsTransactions, 1.5, "JD Wetherspoon")
+	parse.Wait()
+
+	// Matching up the data
+	var match sync.WaitGroup
+
+	match.Add(1)
+	go func() {
+		matchTransactionsMonzo(monzoTransactions, trainlineTransactions, 3, "Trainline")
+		match.Done()
+	}()
+
+	match.Add(1)
+	go func() {
+		matchTransactionsMonzo(monzoTransactions, WetherspoonsTransactions, 1.5, "JD Wetherspoon")
+		match.Done()
+	}()
+
+	match.Wait()
 
 }
 
