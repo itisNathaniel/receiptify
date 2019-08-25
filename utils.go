@@ -31,6 +31,10 @@ func stringToPence(money string) int64 {
 	}
 	processedString := reg.ReplaceAllString(money, "")
 
+	if processedString == "" {
+		return 0
+	}
+
 	currencyVal, err := strconv.Atoi(processedString)
 
 	if err != nil {
@@ -44,7 +48,7 @@ func createTextTransaction(transaction Transaction) string {
 	var stringOut string
 	stringOut = (transaction.details.Name + "\n" + transaction.details.Address + ", " + transaction.details.Postcode + "\n\n")
 	for i := range transaction.item {
-		stringOut = stringOut + (stripTrailing(transaction.item[i].Quantity) + " " + stripTrailing(transaction.item[i].Price) + " " + stripTrailing(transaction.item[i].Description) + "\n")
+		stringOut = stringOut + (string(transaction.item[i].Quantity) + " " + string(transaction.item[i].Price) + " " + stripTrailing(transaction.item[i].Description) + "\n")
 	}
 	stringOut = stringOut + ("\nVAT (" + transaction.details.VatNumber + ") " + "\n\n")
 	return stringOut

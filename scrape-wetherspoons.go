@@ -69,25 +69,20 @@ func parseHTMLWetherspoon(stringHTML string) ([]receiptItem, receiptDetails) {
 
 			if !isInt(Quantity) {
 				// handle blank quantity issue
-				thisItem.Price = thisItem.Description
-				thisItem.Description = thisItem.Quantity
-				thisItem.Quantity = "0"
+				thisItem.Price = stringToPence(thisItem.Description)
+				thisItem.Description = Quantity
+				thisItem.Quantity = 0
 				thisLineIndex = thisLineIndex + 2
 			} else if strings.Contains(AdditionalInfoOrPrice, "£") {
 				// handle prices
-				thisItem.Quantity = Quantity
+				thisItem.Quantity = stringToInt(Quantity)
 				thisItem.Description = Name
-				thisItem.Price = AdditionalInfoOrPrice
-				thisItem.Price = strings.ReplaceAll(thisItem.Price, "£", "")
-				thisItem.Price = strings.ReplaceAll(thisItem.Price, ".", "")
+				thisItem.Price = stringToPence(AdditionalInfoOrPrice)
 				thisLineIndex = thisLineIndex + 3
 			} else {
-				thisItem.Quantity = Quantity
+				thisItem.Quantity = stringToInt(Quantity)
 				thisItem.Description = Name + " " + AdditionalInfoOrPrice
-				thisItem.Price = PriceOrNextItem
-				thisItem.Price = strings.ReplaceAll(thisItem.Price, "£", "")
-				thisItem.Price = strings.ReplaceAll(thisItem.Price, ".", "")
-
+				thisItem.Price = stringToPence(PriceOrNextItem)
 				thisLineIndex = thisLineIndex + 4
 			}
 
@@ -98,8 +93,7 @@ func parseHTMLWetherspoon(stringHTML string) ([]receiptItem, receiptDetails) {
 
 	receiptDetail.PayMethod = content[endOfItemsIndex+1]
 	receiptDetail.OrderTotal = content[endOfItemsIndex+3]
-	receiptDetail.VatNumber = content[endOfItemsIndex+9]
-	receiptDetail.VatNumber = strings.ReplaceAll(receiptDetail.VatNumber, " ", "")
+	receiptDetail.VatNumber = stripTrailing(content[endOfItemsIndex+9])
 
 	receiptDetail.VatTotal = stringToPence(content[endOfItemsIndex+5])
 	receiptDetail.OrderWithVat = stringToPence(receiptDetail.OrderTotal)

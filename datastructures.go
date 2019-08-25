@@ -29,8 +29,8 @@ type receiptDetails struct {
 
 type receiptItem struct {
 	Description string
-	Quantity    string
-	Price       string
+	Quantity    int64
+	Price       int64
 }
 
 type MonzoTransaction struct {

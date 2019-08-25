@@ -94,18 +94,9 @@ func matchTransactionsMonzo(monzoTransact []MonzoTransaction, transactions []Tra
 						item := transactionSearch.item[k]
 						var modelItem MonzoreceiptItem
 
-						nospace := strings.Replace(item.Price, " ", "", -1)
-						stringVal := strings.ReplaceAll(nospace, ".", "")
-						stringVal = strings.ReplaceAll(stringVal, "£", "")
-
-						price, err := strconv.ParseInt(stringVal, 10, 64)
-						if err != nil {
-							fmt.Println(err)
-						}
-
 						modelItem.Description = item.Description
-						modelItem.Quantity = stringToInt(item.Quantity)
-						modelItem.Amount = price
+						modelItem.Quantity = item.Quantity
+						modelItem.Amount = item.Price
 						modelItem.Currency = "GBP"
 
 						items = append(items, modelItem)

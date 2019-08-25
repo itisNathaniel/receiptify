@@ -79,22 +79,22 @@ func parseTrainlineHTML(htmlStr string) Transaction {
 				}
 
 				var thisItem receiptItem
-				thisItem.Quantity = strings.Split(content[k], "x")[0]
+				thisItem.Quantity = stringToInt(strings.Split(content[k], "x")[0])
 				thisItem.Description = stripTrailing(strings.Split(content[k], "x")[1])
-				thisItem.Price = strings.Split(content[k+1], "x")[1]
+				thisItem.Price = stringToPence(strings.Split(content[k+1], "x")[1])
 				k++
 
 				items = append(items, thisItem)
 
 			} else if content[k] == "Booking Fee:" {
 				var thisItem receiptItem
-				thisItem.Quantity = "1"
+				thisItem.Quantity = 1
 				thisItem.Description = "Booking Fee"
 
 				if content[k+1] == "No booking fee" {
-					thisItem.Price = "0"
+					thisItem.Price = 0
 				} else {
-					thisItem.Price = content[k+1]
+					thisItem.Price = stringToPence(content[k+1])
 				}
 
 				items = append(items, thisItem)
