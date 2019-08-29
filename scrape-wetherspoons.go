@@ -91,6 +91,12 @@ func parseHTMLWetherspoon(stringHTML string) ([]receiptItem, receiptDetails) {
 		}
 	}
 
+	// item for general info as Monzo does not natively support in receipts
+	var thisDetail receiptItem
+	thisDetail.Description = receiptDetail.Name + " - Table: " + receiptDetail.Table + ""
+	receiptItems = append(receiptItems, thisDetail)
+
+	// payment method
 	receiptDetail.PayMethod = content[endOfItemsIndex+1]
 	receiptDetail.OrderTotal = content[endOfItemsIndex+3]
 	receiptDetail.VatNumber = stripTrailing(content[endOfItemsIndex+9])
